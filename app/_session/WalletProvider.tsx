@@ -1,41 +1,45 @@
-"use client";
+'use client';
+
+import { Session, SessionKit } from '@wharfkit/session';
+import { WalletPluginAnchor } from '@wharfkit/wallet-plugin-anchor';
+import { WalletPluginCloudWallet } from '@wharfkit/wallet-plugin-cloudwallet';
+import { WalletPluginWombat } from '@wharfkit/wallet-plugin-wombat';
 import {
   ReactNode,
   createContext,
-  useState,
-  useEffect,
   useContext,
-} from "react";
-import { SessionKit, Session } from "@wharfkit/session";
-
-import { WalletPluginAnchor } from "@wharfkit/wallet-plugin-anchor";
-import { WalletPluginCloudWallet } from "@wharfkit/wallet-plugin-cloudwallet";
-import { WalletPluginWombat } from "@wharfkit/wallet-plugin-wombat";
+  useEffect,
+  useState,
+} from 'react';
 
 export type WalletInformation = {
   kit: SessionKit | null;
   session: Session | null;
   setSession: Function;
+  isLoading: boolean;
 };
 
 export const WalletContext = createContext<WalletInformation>({
   kit: null,
   session: null,
   setSession: () => {},
+  isLoading: false,
 });
 
 export default function WalletProvider({ children }: { children: ReactNode }) {
   const [kit, setKit] = useState<SessionKit | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
   useEffect(() => {
     const loadWharf = async () => {
-      const { WebRenderer } = await import("@wharfkit/web-renderer");
+      const { WebRenderer } = await import('@wharfkit/web-renderer');
       const sessionKit = new SessionKit({
-        appName: "njs14wharf",
+        appName: 'NextJS 14 + Wharfkit Demo',
         chains: [
           {
-            id: "1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44e01aea5a4",
-            url: "https://wax.greymass.com",
+            id: '1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44e01aea5a4',
+            url: 'https://wax.greymass.com',
           },
         ],
         ui: new WebRenderer(),
@@ -48,6 +52,7 @@ export default function WalletProvider({ children }: { children: ReactNode }) {
 
       const restored = await sessionKit.restore();
       setKit(sessionKit);
+      setIsLoading(false);
       setSession(restored ?? null);
     };
     loadWharf();
@@ -57,6 +62,7 @@ export default function WalletProvider({ children }: { children: ReactNode }) {
     kit: kit,
     session: session,
     setSession: setSession,
+    isLoading: isLoading,
   };
   return (
     <WalletContext.Provider value={value}>{children}</WalletContext.Provider>
